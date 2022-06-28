@@ -25,6 +25,25 @@ from typing import Tuple
 import numpy as np
 import random
 
+from pandas import array
+
+def generate_test_jacobian(x1 : float, x2:float) -> np.matrix:
+
+    J = np.matrix([
+        [1,2],
+        [2*x1, 8*x2 ]
+    ])
+    return J
+
+def generate_test_F_vector(x1 : float, x2:float) -> np.ndarray:
+    F = np.array(
+        [
+        x1 + x2*2 -2,
+        x1**2 + 4*x2**2 - 4
+        ]
+        )
+    return F
+
 def generate_jacobian(c2 : float, c3:float, c4:float) -> np.matrix:
 
     J = np.matrix([
@@ -48,7 +67,7 @@ def generate_F_vector(c2 : float,c3:float, c4:float, teta1:float, teta2:float) -
     return F
 
 def newthon_s_method_multidimensional(teta1:float,teta2:float, tol: float, NmaxIter: int) -> np.ndarray:
-    x0 = np.array([1,0,0])
+    x0 = np.array([1,1,0])
     res = np.inf
     xk = x0
     xk1 = x0
@@ -59,7 +78,26 @@ def newthon_s_method_multidimensional(teta1:float,teta2:float, tol: float, NmaxI
         xk = xk1[:]
         J = generate_jacobian(xk[0],xk[1],xk[2])
         F = generate_F_vector(xk[0],xk[1],xk[2],teta1,teta2)
-        
+        # sk =  metodo_lu(J,F)[1]
+        sk = np.linalg.solve(J,-F)
+        xk1 = xk + sk
+        res = np.linalg.norm(sk,ord=2,axis=0) / np.linalg.norm(xk,ord=2,axis=0)
+        # print(xk1,res)
+        NmaxIter -= 1
+    return xk1
+
+def newthon_test_method_multidimensional(teta1:float,teta2:float, tol: float, NmaxIter: int) -> np.ndarray:
+    x0 = np.array([-2.5,2.25])
+    res = np.inf
+    xk = x0
+    xk1 = x0
+    
+    while res > tol: 
+        if NmaxIter == 0:
+            raise RuntimeError("Nao convergiu, numero maximo de iteracoes atingido")
+        xk = xk1[:]
+        J = generate_test_jacobian(xk[0],xk[1])
+        F = generate_test_F_vector(xk[0],xk[1])
         # sk =  metodo_lu(J,F)[1]
         sk = np.linalg.solve(J,-F)
         xk1 = xk + sk
@@ -68,38 +106,82 @@ def newthon_s_method_multidimensional(teta1:float,teta2:float, tol: float, NmaxI
         NmaxIter -= 1
     return xk1
     
-
 def broyden_s_method_multidimensional(teta1:float,teta2:float, tol: float, NmaxIter: int) -> np.ndarray:
-    res = np.inf
-    xk = np.array([1,0,0])
-    xk1 = np.array([1,0,0])
-    Bk =  generate_jacobian(xk[0],xk[1],xk[2])
-    Fk1 = generate_F_vector(xk[0],xk[1],xk[2],teta1,teta2)
-    print(Bk,"\n","fk1",Fk1)
-
-    while True: 
-        if NmaxIter == 0:
-            raise RuntimeError("Nao convergiu, numero maximo de iteracoes atingido")
-        xk = xk1[:]
-        Fk = Fk1
-        # sk =  metodo_lu(J,F)[1]
-        #sk = np.linalg.solve(Bk,-Fk)
-        sk = -np.dot(np.linalg.inv(Bk) , (Fk))
-        print(sk,"\n",Bk,"\n",Fk)
-        xk1 = xk + sk
-        Fk1 = generate_F_vector(xk1[0],xk1[1],xk1[2],teta1,teta2)
-        yk = Fk1 - Fk
-        res = np.linalg.norm(sk,ord=2,axis=0) / np.linalg.norm(xk,ord=2,axis=0)
-        if res > tol:
-            break
-        print(np.matmul(Bk , sk),Bk , sk)
-        Bk = Bk + np.dot((yk - np.matmul(Bk , sk)) , sk.T) * (1.0 / np.dot(sk.T , sk))
-        print(Bk)
-        # print(res)
-        NmaxIter -= 1
-        break
+    xk = np.array([1,1,0])
+    Jacobian = generate_jacobian(xk[0],xk[1],xk[2])
+    bk_1 = Jacobian
+    for _ in range(NmaxIter):
+        xk_1 = xk
+        Jacobian = bk_1
+        deltax = -np.matmul(np.linalg.inv(Jacobian),generate_F_vector(xk_1[0],xk_1[1],xk_1[2],teta1,teta2))
+        deltax = np.array(deltax)[0]
+        xk = xk_1 + deltax
+        # print(xk)
+        yk = np.subtract(generate_F_vector(xk[0],xk[1],xk[2],teta1,teta2) , generate_F_vector(xk_1[0],xk_1[1],xk_1[2],teta1,teta2))
+        res = (np.linalg.norm(deltax,ord=2)/np.linalg.norm(xk,ord=2))
+        if res < tol:
+            return xk
+        else:
+            bk = bk_1 + ( np.outer(yk - np.dot(bk_1, deltax), deltax.T,)) / np.dot(deltax.T,deltax)
+        bk_1 = bk
         
-    return xk1
+
+    raise RuntimeError("Nao convergiu, numero maximo de iteracoes atingido")
+
+def broyden_test_method_multidimensional(teta1:float,teta2:float, tol: float, NmaxIter: int) -> np.ndarray:
+    xk = np.array([1,2])
+    Jacobian = generate_test_jacobian(xk[0],xk[1])
+    bk_1 = Jacobian
+    #NmaxIter = 2
+    for _ in range(NmaxIter):
+        xk_1 = xk
+        Jacobian = bk_1
+        deltax = -np.matmul(np.linalg.inv(Jacobian),generate_test_F_vector(xk_1[0],xk_1[1]))
+        deltax = np.array(deltax)[0]
+        xk = xk_1 + deltax
+        # print(xk)
+        yk = np.subtract(generate_test_F_vector(xk[0],xk[1]) , generate_test_F_vector(xk_1[0],xk_1[1]))
+        res = (np.linalg.norm(deltax,ord=2) / np.linalg.norm(xk,ord=2))
+        if res < tol:
+            return xk
+        else:
+            bk = bk_1 + ( np.outer(yk - np.dot(bk_1, deltax), deltax.T,)) / np.dot(deltax.T,deltax)
+        bk_1 = bk
+        
+        
+
+    raise RuntimeError("Nao convergiu, numero maximo de iteracoes atingido")
+# def broyden_s_method_multidimensional(teta1:float,teta2:float, tol: float, NmaxIter: int) -> np.ndarray:
+#     x0 = np.array([1,0,0])
+#     res = np.inf
+#     xk = x0
+#     xk1 = x0
+#     Bk =  generate_jacobian(xk[0],xk[1],xk[2])
+#     Fk1 = generate_F_vector(xk[0],xk[1],xk[2],teta1,teta2)
+
+#     while True: 
+#         if NmaxIter == 0:
+#             raise RuntimeError("Nao convergiu, numero maximo de iteracoes atingido")
+#         xk = xk1[:]
+#         Fk = Fk1
+#         # sk =  metodo_lu(J,F)[1]
+#         #sk = np.linalg.solve(Bk,-Fk)
+#         sk = -np.dot(np.linalg.inv(Bk) , (Fk))
+#         print(sk,"\n",Bk,"\n",Fk)
+#         xk1 = xk + sk
+#         Fk1 = generate_F_vector(xk1[0],xk1[1],xk1[2],teta1,teta2)
+#         yk = Fk1 - Fk
+#         res = np.linalg.norm(sk,ord=2,axis=0) / np.linalg.norm(xk,ord=2,axis=0)
+#         if res > tol:
+#             break
+#         print(np.matmul(Bk , sk),Bk , sk)
+#         Bk = Bk + np.dot((yk - np.matmul(Bk , sk)) , sk.T) * (1.0 / np.dot(sk.T , sk))
+#         print(Bk)
+#         # print(res)
+#         NmaxIter -= 1
+#         break
+        
+#     return xk1
 
 
 def main():

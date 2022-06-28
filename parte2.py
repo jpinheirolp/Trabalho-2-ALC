@@ -49,7 +49,6 @@ def metodo_bissecao(f:callable, a: float, b: float, tol: float, NmaxIter: int) -
         if NmaxIter == 0:
             raise RuntimeError("Nao convergiu, numero maximo de iteracoes atingido")
         xi = (a+b)/2.0
-        print(xi)
         fi = f(xi)
         if (fi > 0.0):
             if crescente:
@@ -66,9 +65,9 @@ def metodo_bissecao(f:callable, a: float, b: float, tol: float, NmaxIter: int) -
 
 def metodo_newton(f:callable,f_derivative:callable, tol: float, a: float, b: float, NmaxIter: int) -> float:
     x0 = (a+b)/2.0
-    for _ in range(NmaxIter):
+    for i in range(NmaxIter):
         x1 = x0 - f(x0)/f_derivative(x0)
-        print(x1,x0)
+        
         if abs(x1 - x0) < tol:
             return x1
         x0 = x1
@@ -247,7 +246,7 @@ def calcula_integral(f:callable, a: float, b: float) -> float:
     input_metodo = int(input("Escolha o metodo de integral:\n1- Gauss-Legendre;\n2- Quadratura Polinomial;\n"))
     match input_metodo:
         case 1:
-           return quadratura_gauss_legendre(f=f, a=a, b=b, number_of_points=input_n_pontos)
+            return quadratura_gauss_legendre(f=f, a=a, b=b, number_of_points=input_n_pontos)
         case 2:
             return quadratura_polinomial(f=f, a=a, b=b, number_of_points=input_n_pontos)
         case _:
@@ -306,16 +305,16 @@ def main():
             print("Integral: ", calcula_integral(f=f, a=a, b=b))
         case 3:
             if deltax1 is None:
-                raise RuntimeError('DeltaX1 nao fornecido') 
+                raise RuntimeError('deltax1 nao fornecido') 
             if x is None:
                 raise RuntimeError('x nao fornecido')
             print("Derivada DF: ", calcula_derivada_DF(f=f, deltaX=deltax1, x=x))
 
         case 4:
             if deltax1 is None:
-                raise RuntimeError('DeltaX1 nao fornecido')
+                raise RuntimeError('deltax1 nao fornecido')
             if deltax2 is None:
-                raise RuntimeError('DeltaX2 nao fornecido')
+                raise RuntimeError('deltax2 nao fornecido')
             if not x:
                 raise RuntimeError('x nao fornecido')
             print('Derivada RE: ',extrapolacao_richard(f=f, deltaX1=deltax1, deltaX2=deltax2, x=x))
