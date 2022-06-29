@@ -29,7 +29,7 @@ from typing import Tuple
 import numpy as np
 
 def generate_f(c1: float, c2: float, c3: float, c4: float) -> callable:
-    return lambda x: c1 + np.exp(c2*x) + c3*x**c4
+    return lambda x: c1 * np.exp(c2*x) + c3*x**c4
 
 def generate_f_derivative(c1: float,c2: float,c3: float,c4:float ) -> callable:
     return lambda x: c1*c2*np.exp(c2*x) + c3*c4*x**(c4-1)
@@ -71,6 +71,7 @@ def metodo_newton(f:callable,f_derivative:callable, tol: float, a: float, b: flo
         if abs(x1 - x0) < tol:
             return x1
         x0 = x1
+        print(x1)
     raise RuntimeError("Nao convergiu, numero maximo de iteracoes atingido")
 
 def metodo_newton_secante(f:callable, a: float, b: float, tol: float, NmaxIter: int) -> float:

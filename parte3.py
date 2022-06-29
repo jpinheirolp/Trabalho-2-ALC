@@ -17,6 +17,7 @@
 # 1. Um "pseudo" manual do usuario - orientacoes minimas de como usar o programa
 import numpy as np
 import argparse
+import matplotlib.pyplot as plt
 
 def generate_f(a1, a2, a3, w1, w2, w3,c,k,m):
     f = lambda t: a1*np.sin(w1*t) + a2*np.sin(w2*t) + a3*np.cos(w3*t)
@@ -80,6 +81,12 @@ def main():
     f=generate_f(m=m,c=c, k=k, a1=a1, a2=a2, a3=a3, w1=w1, w2=w2, w3=w3)
     tabela = range_kuta_nystron(xk=0,dxk=0,tempo_total=tempo_total,passo=passo,f=f)
     print(tabela)
+    # plt.plot(tabela[0],tabela[1])
+    # plt.savefig('temp_Desl.png')
+    # plt.show()
+    # plt.plot(tabela[0],tabela[2])
+    # plt.savefig('temp_vel.png')
+    # plt.show()
     np.savetxt('resultRKN.csv', tabela, delimiter=",", header="Tempo,Deslocamento,Velocidade,Aceleração", comments="" )   
     
 if __name__ == '__main__':

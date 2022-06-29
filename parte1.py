@@ -67,7 +67,7 @@ def generate_F_vector(c2 : float,c3:float, c4:float, teta1:float, teta2:float) -
     return F
 
 def newthon_s_method_multidimensional(teta1:float,teta2:float, tol: float, NmaxIter: int) -> np.ndarray:
-    x0 = np.array([1,1,0])
+    x0 = np.array([1,0,0])
     res = np.inf
     xk = x0
     xk1 = x0
@@ -107,7 +107,7 @@ def newthon_test_method_multidimensional(teta1:float,teta2:float, tol: float, Nm
     return xk1
     
 def broyden_s_method_multidimensional(teta1:float,teta2:float, tol: float, NmaxIter: int) -> np.ndarray:
-    xk = np.array([1,1,0])
+    xk = np.array([1,0,0])
     Jacobian = generate_jacobian(xk[0],xk[1],xk[2])
     bk_1 = Jacobian
     for _ in range(NmaxIter):
